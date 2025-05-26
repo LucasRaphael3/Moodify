@@ -4,7 +4,7 @@ MOODSIC is a web application that recommends music based on your mood. Using tex
 
 ## 🚀 Features
 
-- ✨ Sentiment analysis via API (based on text input)
+- ✨ Sentiment analysis via API
 - 🎧 Music and playlist recommendations via Spotify API
 - 🎵 Mood-to-genre mapping logic
 - 💾 "Save Mood" feature for storing mood-based suggestions
