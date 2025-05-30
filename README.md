@@ -1,4 +1,4 @@
-🎵 MOODSIC
+🎵 MOODIFY
 
 MOODSIC is a web application that recommends music based on your mood. Using text sentiment analysis and Spotify integration, the app suggests playlists and tracks that match your emotional state.
 
