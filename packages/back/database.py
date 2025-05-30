@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 # ----- CONFIG -----
 DATABASE_URL = "sqlite:///./usuarios.db"
-SECRET_KEY = "supersecretkey"  # Em produção, use uma key segura e oculta
+SECRET_KEY = "senhasecreta"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
