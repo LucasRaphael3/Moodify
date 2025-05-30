@@ -1,0 +1,133 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Lado esquerdo */
+.left {
+  width: 50%;
+  background: linear-gradient(to bottom, #1e1e1e, #000);
+  color: white;
+  padding: 60px;
+  position: relative;
+}
+
+.logo {
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.subtitle {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.circles {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.circle {
+  border: 1px solid white;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.circle.big {
+  width: 250px;
+  height: 250px;
+  left: -60px;
+  bottom: -60px;
+}
+
+.circle.small {
+  width: 180px;
+  height: 180px;
+  left: 20px;
+  bottom: 20px;
+}
+
+/* Lado direito */
+.right {
+  width: 50%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.form {
+  width: 80%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #eee;
+  border-radius: 25px;
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+}
+
+.input-group .icon {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  background: transparent;
+  flex: 1;
+  font-size: 14px;
+}
+
+.btn {
+  background-color: #1e1e1e;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background-color: #333;
+}
+
+.forgot {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #777;
+  text-decoration: none;
+}
+
+.forgot:hover {
+  text-decoration: underline;
+}
