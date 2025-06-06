@@ -11,11 +11,10 @@
     <div class="logo">Moodsic</div>
     <h1>Seja bem vindo!</h1>
     <p class="subtitle">Cadastre-se</p>
-
-    <form class="form">
-      <input type="text" placeholder="Nome completo" required />
-      <input type="email" placeholder="E-mail" required />
-      <input type="password" placeholder="Senha" required />
+    <<form class="form" method="post" action="/cadastro">
+      <input type="text" name="nome" placeholder="Nome completo" required />
+      <input type="email" name="email" placeholder="E-mail" required />
+      <input type="password" name="senha" placeholder="Senha" required />
       <button type="submit">Registrar</button>
     </form>
   </div>
