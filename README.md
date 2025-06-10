@@ -4,18 +4,17 @@ MOODIFY is a web application that recommends music based on your mood. Using tex
 
 ## 🚀 Features
 
-- ✨ Sentiment analysis via API
 - 🎧 Music and playlist recommendations via Spotify API
 - 🎵 Mood-to-genre mapping logic
 - 💾 "Save Mood" feature for storing mood-based suggestions
 - 🔗 Preview and direct link to Spotify tracks
 - 📱 Mobile-responsive user interface
 - 💡 Light/Dark theme toggle
-- 📝 User feedback form or prompt
 - 📄 Documentation and usage guide
 
 ## 🛠️ Technologies
 
-- **Frontend:** 
-- **APIs:** Sentiment Analysis API, Spotify Web API
+- **Frontend:** Javascript, Html and Css
+- **Backend:** Python, FastApi
+- **APIs:** Spotify Web API
 - **Deployment (planned):** 
