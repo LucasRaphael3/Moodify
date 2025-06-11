@@ -1,26 +1,56 @@
-from fastapi import FastAPI, Request, Form, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from packages.back.database import SessionLocal, engine
-from packages.back import models, crud
+from fastapi.middleware.cors import CORSMiddleware  
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from passlib.hash import bcrypt
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 
-import os
+# ----- CONFIG -----
+DATABASE_URL = "sqlite:///./usuarios.db"
+SECRET_KEY = "supersecretkey"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Cria as tabelas no banco
-models.Base.metadata.create_all(bind=engine)
+# ----- DB SETUP -----
+Base = declarative_base()
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-app = FastAPI()
+# ----- MODELS -----
+class Usuario(Base):
+    __tablename__ = "usuarios"
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    senha_hash = Column(String, nullable=False)
 
-# Caminhos para templates e arquivos estáticos
-base_dir = os.path.dirname(os.path.abspath(__file__))
-front_dir = os.path.abspath(os.path.join(base_dir, "..", "front"))
+Base.metadata.create_all(bind=engine)
 
-app.mount("/static", StaticFiles(directory=front_dir), name="static")
-templates = Jinja2Templates(directory=front_dir)
+# ----- SCHEMAS -----
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: EmailStr
+    senha: str
 
-# Dependência do banco de dados
+class UsuarioLogin(BaseModel):
+    email: EmailStr
+    senha: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: str | None = None
+
+# ----- AUTH UTILS -----
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+
 def get_db():
     db = SessionLocal()
     try:
@@ -28,45 +58,87 @@ def get_db():
     finally:
         db.close()
 
-# ---------- ROTAS ----------
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Tela de login
-@app.get("/", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse("Tela inicial.html", {"request": request})
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Não autorizado",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError as exc:
+        raise credentials_exception from exc
 
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
-# Tela de cadastro
+# ----- FASTAPI APP -----
+app = FastAPI(title="Sistema de Login/Cadastro com JWT")
+
+# --- CONFIGURAÇÃO DO CORS ---
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- CONFIGURAÇÃO PARA SERVIR ARQUIVOS HTML ---
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/login", response_class=HTMLResponse)
+async def get_login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
 @app.get("/cadastro", response_class=HTMLResponse)
-def cadastro_page(request: Request):
-    return templates.TemplateResponse("Tela cadastro.html", {"request": request})
+async def get_cadastro_page(request: Request):
+    return templates.TemplateResponse("cadastro.html", {"request": request})
 
 
-# Processa o formulário de cadastro
-@app.post("/cadastro")
-def processar_cadastro(
-    nome: str = Form(...),
-    email: str = Form(...),
-    senha: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    user_existente = crud.get_user_by_email(db, email=email)
-    if user_existente:
-        return RedirectResponse(url="/cadastro", status_code=302)
+# ----- API ENDPOINTS -----
 
-    crud.create_user(db, nome=nome, email=email, senha=senha)
-    return RedirectResponse(url="/", status_code=302)
+@app.post("/register", response_model=dict)
+def register(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+    if db.query(Usuario).filter(Usuario.email == usuario.email).first():
+        raise HTTPException(status_code=400, detail="Email já registrado")
 
+    senha_hash = bcrypt.hash(usuario.senha)
+    novo_usuario = Usuario(nome=usuario.nome, email=usuario.email, senha_hash=senha_hash)
+    db.add(novo_usuario)
+    db.commit()
+    return {"mensagem": "Usuário registrado com sucesso"}
 
-# Processa o login (se quiser implementar depois)
-@app.post("/login")
-def processar_login(
-    email: str = Form(...),
-    senha: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    user = crud.get_user_by_email(db, email=email)
-    if user and user.senha == senha:
-        # Aqui você pode redirecionar para a home do sistema
-        return RedirectResponse(url="/", status_code=302)
-    return RedirectResponse(url="/", status_code=302)
+@app.post("/token", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # O form_data espera os campos 'username' e 'password'
+    usuario = db.query(Usuario).filter(Usuario.email == form_data.username).first()
+    if not usuario or not bcrypt.verify(form_data.password, usuario.senha_hash):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+    access_token = create_access_token(
+        data={"sub": usuario.email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/me")
+def read_users_me(current_user: Usuario = Depends(get_current_user)):
+    # Esta é uma rota protegida. Só pode ser acessada com um token válido.
+    return {"nome": current_user.nome, "email": current_user.email}
+
+@app.get("/")
+def root():
+    return {"mensagem": "API de login e cadastro com JWT"}

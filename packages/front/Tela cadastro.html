@@ -8,15 +8,70 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">Moodsic</div>
-    <h1>Seja bem vindo!</h1>
-    <p class="subtitle">Cadastre-se</p>
-    <<form class="form" method="post" action="/cadastro">
+    <div class="logo">Moodify</div>
+    <h1>Seja bem-vindo!</h1>
+    <p class="subtitle">Cadastre-se para continuar</p>
+    <form class="form" id="register-form">
       <input type="text" name="nome" placeholder="Nome completo" required />
       <input type="email" name="email" placeholder="E-mail" required />
       <input type="password" name="senha" placeholder="Senha" required />
       <button type="submit">Registrar</button>
     </form>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById('register-form');
+    const messageDiv = document.getElementById('message');
+
+    registerForm.addEventListener('submit', async (event) => {
+      // 1. Impede o recarregamento da página
+      event.preventDefault();
+
+      // 2. Limpa mensagens anteriores
+      messageDiv.textContent = '';
+      messageDiv.className = '';
+
+      // 3. Coleta os dados do formulário
+      const formData = new FormData(registerForm);
+      // Converte os dados do formulário para um objeto simples
+      const data = Object.fromEntries(formData.entries());
+
+      // 4. Envia os dados para a API como JSON
+      try {
+        const response = await fetch('http://127.0.0.1:8000/register', {
+          method: 'POST',
+          headers: {
+            // Informa à API que estamos enviando dados no formato JSON
+            'Content-Type': 'application/json'
+          },
+          // Converte o objeto JavaScript para uma string JSON
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          // Se a API retornar um erro (ex: email já existe), ele será capturado aqui
+          throw new Error(result.detail || 'Ocorreu um erro ao registrar.');
+        }
+
+        // SUCESSO!
+        messageDiv.textContent = result.mensagem;
+        messageDiv.className = 'success';
+        
+        // Opcional: Redireciona para a página de login após 2 segundos
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+
+      } catch (error) {
+        // Exibe a mensagem de erro na tela
+        messageDiv.textContent = error.message;
+        messageDiv.className = 'error';
+      }
+    });
+  </script>
   </div>
 </body>
 </html>
