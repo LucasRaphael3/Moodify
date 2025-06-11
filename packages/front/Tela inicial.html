@@ -153,21 +153,70 @@
       </div>
     </div>
 
-    <div class="right">
+     <div class="right">
       <h2 class="title">Login</h2>
-      <form class="form" method="post" action="/login">
+      <form class="form" id="login-form">
         <div class="input-group">
           <span class="icon">📧</span>
-          <input type="email" name="email" placeholder="E-mail" required />
+          <input type="email" name="username" placeholder="E-mail" required />
         </div>
         <div class="input-group">
           <span class="icon">🔒</span>
-          <input type="password" name="senha" placeholder="Senha" required />
+           <input type="password" name="password" placeholder="Senha" required />
         </div>
         <button type="submit" class="btn">Login</button>
-        <a href="#" class="forgot">Esqueci minha senha</a>
-      </form
+        <div id="error-message"></div> <a href="#" class="forgot">Esqueci minha senha</a>
+      </form>
     </div>
+  </div>
+
+  <script>
+    // Seleciona o formulário e a div de mensagem de erro
+    const loginForm = document.getElementById('login-form');
+    const errorMessage = document.getElementById('error-message');
+
+    // Adiciona um 'escutador' para o evento de 'submit' do formulário
+    loginForm.addEventListener('submit', async (event) => {
+      // 1. Impede o comportamento padrão do formulário (que seria recarregar a página)
+      event.preventDefault();
+
+      // 2. Limpa mensagens de erro antigas
+      errorMessage.textContent = '';
+
+      // 3. Coleta os dados do formulário
+      const formData = new FormData(loginForm);
+
+      // 4. Envia os dados para a API usando fetch
+      try {
+        const response = await fetch('http://127.0.0.1:8000/token', { // A URL da sua API
+          method: 'POST',
+          body: formData
+        });
+
+        // 5. Trata a resposta da API
+        if (!response.ok) {
+          // Se a resposta não for OK (ex: erro 401), pega o detalhe do erro
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Falha no login');
+        }
+
+        const data = await response.json();
+
+        // SUCESSO! O token foi recebido.
+        console.log('Login bem-sucedido!', data);
+        alert('Login realizado com sucesso!'); 
+
+        // Guarda o token no navegador (LocalStorage é uma opção comum)
+        localStorage.setItem('accessToken', data.access_token);
+        
+
+      } catch (error) {
+        // Exibe a mensagem de erro na tela
+        console.error('Erro ao fazer login:', error);
+        errorMessage.textContent = error.message;
+      }
+    });
+  </script>
   </div>
 </body>
 </html>
