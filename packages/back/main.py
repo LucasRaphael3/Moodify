@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -99,7 +100,8 @@ app.add_middleware(
 )
 
 # --- CONFIGURAÇÃO PARA SERVIR ARQUIVOS HTML ---
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
@@ -108,6 +110,14 @@ async def get_login_page(request: Request):
 @app.get("/cadastro", response_class=HTMLResponse)
 async def get_cadastro_page(request: Request):
     return templates.TemplateResponse("cadastro.html", {"request": request})
+
+@app.get("/telaescolhamood", response_class=HTMLResponse)
+async def get_escolhamood_page(request: Request):
+    return templates.TemplateResponse("telaescolhamood.html", {"request": request})
+
+@app.get("/telaplaylist", response_class=HTMLResponse)
+async def get_telaplaylist_page(request: Request):
+    return templates.TemplateResponse("telaplaylist.html", {"request": request})
 
 
 # ----- API ENDPOINTS -----
@@ -177,18 +187,12 @@ async def get_playlist_by_mood(mood: str):
         # 4. Retornamos um dicionário contendo a lista de playlists
         return {"playlists": results_list}
 
-    except Exception as e:
-        print("\n--- TRACEBACK COMPLETO DO ERRO ---")
-        traceback.print_exc()
-        print("----------------------------------\n")
-        raise HTTPException(status_code=500, detail="Ocorreu um erro interno inesperado no servidor.") from e
-
-
 @app.get("/me")
 def read_users_me(current_user: Usuario = Depends(get_current_user)):
     # Esta é uma rota protegida. Só pode ser acessada com um token válido.
     return {"nome": current_user.nome, "email": current_user.email}
 
-@app.get("/")
-def root():
-    return {"mensagem": "API de login e cadastro com JWT"}
+@app.get("/", response_class=HTMLResponse)
+async def serve_login_page(request: Request):
+    """Serve a página de login como a página inicial."""
+    return templates.TemplateResponse("login.html", {"request": request})
