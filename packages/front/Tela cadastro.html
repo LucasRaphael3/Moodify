@@ -59,11 +59,9 @@
         // SUCESSO!
         messageDiv.textContent = result.mensagem;
         messageDiv.className = 'success';
+        // A linha abaixo redireciona o usuário imediatamente para a página de login.
+        window.location.href = 'Tela inicial.html';
         
-        // Opcional: Redireciona para a página de login após 2 segundos
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
 
       } catch (error) {
         // Exibe a mensagem de erro na tela
@@ -72,6 +70,5 @@
       }
     });
   </script>
-  </div>
 </body>
 </html>
