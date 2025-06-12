@@ -114,31 +114,74 @@
   <header>
     <div class="logo">Moodify</div>
     <div class="icons">
-      <span>⚙️</span>
       <span>🧑‍💻</span>
     </div>
   </header>
 
   <div class="container">
-    <h1>Como você está feliz nós recomendamos essas playlists</h1>
-    <div class="playlist-options">
-      <div class="playlist-box">
-        <div class="playlist-title">Nome da musica</div>
-        <div class="playlist-genres">Genero da musica</div>
-        <button class="btn">▶ Ouvir agora</button>
-      </div>
-      <div class="playlist-box">
-        <div class="playlist-title">Nome da musica</div>
-        <div class="playlist-genres">Genero da musica</div>
-        <button class="btn">▶ Ouvir agora</button>
-      </div>
-      <div class="playlist-box">
-        <div class="playlist-title">Nome da musica</div>
-        <div class="playlist-genres">Genero da musica</div>
-        <button class="btn">▶ Ouvir agora</button>
-      </div>
+    <h1 id="page-title">Suas playlists recomendadas estão aqui!</h1>
+    <div class="playlist-options" id="playlist-container">
+      <p>Carregando playlists...</p>
     </div>
   </div>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const playlistDataString = localStorage.getItem('playlist');
+      const playlistContainer = document.getElementById('playlist-container');
+
+      if (playlistDataString) {
+        try {
+          // 1. Pega o objeto principal que contém a lista
+          const data = JSON.parse(playlistDataString);
+          // 2. Acessa a lista de playlists de dentro do objeto
+          const playlists = data.playlists;
+
+          // 3. Verifica se 'playlists' é uma lista e se tem itens
+          if (Array.isArray(playlists) && playlists.length > 0) {
+            playlistContainer.innerHTML = ''; // Limpa a mensagem "Carregando..."
+
+            // 4. Usa um loop (forEach) para criar um card para cada playlist
+            playlists.forEach(playlist => {
+              const playlistBox = document.createElement('div');
+              playlistBox.className = 'playlist-box';
+
+              const image = document.createElement('img');
+              image.src = playlist.image_url || 'https://via.placeholder.com/200?text=No+Image';
+              image.className = 'playlist-image';
+              image.alt = `Capa da playlist ${playlist.name}`;
+
+              const title = document.createElement('div');
+              title.className = 'playlist-title';
+              title.textContent = playlist.name || 'Nome da Playlist';
+
+              const button = document.createElement('a');
+              button.className = 'btn';
+              button.href = playlist.external_url || '#';
+              button.target = '_blank';
+              button.rel = 'noopener noreferrer';
+              button.textContent = '▶ Ouvir no Spotify';
+
+              // Monta o card da playlist
+              playlistBox.appendChild(image);
+              playlistBox.appendChild(title);
+              playlistBox.appendChild(button);
+              
+              // Adiciona o card pronto ao container na página
+              playlistContainer.appendChild(playlistBox);
+            });
+          } else {
+            // Caso a lista de playlists esteja vazia
+            throw new Error("Nenhuma playlist foi retornada.");
+          }
+        } catch(e) {
+            console.error("Erro ao processar dados da playlist:", e);
+            playlistContainer.innerHTML = `<p>Houve um erro ao ler os dados da playlist. ${e.message}</p>`;
+        }
+      } else {
+        playlistContainer.innerHTML = '<p>Não foi possível carregar as playlists. Tente escolher um humor novamente.</p>';
+      }
+    });
+  </script>
 </body>
 </html>
