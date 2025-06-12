@@ -101,7 +101,7 @@ app.add_middleware(
 
 # --- CONFIGURAÇÃO PARA SERVIR ARQUIVOS HTML ---
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates = Jinja2Templates(directory=str(BASE_DIR / "front"))
 
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
