@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from passlib.hash import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+import spotify_api 
+import traceback
 
 # ----- CONFIG -----
 DATABASE_URL = "sqlite:///./usuarios.db"
@@ -133,6 +135,54 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+# --- ROTA PARA BUSCAR PLAYLISTS ---
+@app.get("/playlist/{mood}")
+async def get_playlist_by_mood(mood: str):
+    mood_to_query_map = {
+        "happy": "good vibes",
+        "sad": "melancolic songs",
+        "party": "Nostalgic",
+        "relax": "Relaxing Music"
+    }
+    search_query = mood_to_query_map.get(mood.lower(), "Pop Up")
+
+    try:
+        spotify_data = spotify_api.search_spotify_playlist(search_query, limit=4)
+
+        if spotify_data is None:
+            raise HTTPException(status_code=502, detail="Falha na comunicação com a API do Spotify.")
+
+        items = spotify_data.get('playlists', {}).get('items', [])
+        
+        if not items:
+            raise HTTPException(status_code=404, detail=f"Nenhuma playlist encontrada para '{search_query}'.")
+
+        # 2. Criamos uma lista para armazenar os resultados formatados
+        results_list = []
+        
+        # 3. Usamos um loop para processar cada playlist encontrada
+        for playlist in items:
+            # Garantimos que o item não é nulo antes de processar
+            if playlist:
+                image_url = playlist['images'][0]['url'] if playlist.get('images') else None
+                external_url = playlist['external_urls']['spotify'] if playlist.get('external_urls') else None
+                
+                results_list.append({
+                    "name": playlist.get("name"),
+                    "external_url": external_url,
+                    "image_url": image_url
+                })
+        
+        # 4. Retornamos um dicionário contendo a lista de playlists
+        return {"playlists": results_list}
+
+    except Exception as e:
+        print("\n--- TRACEBACK COMPLETO DO ERRO ---")
+        traceback.print_exc()
+        print("----------------------------------\n")
+        raise HTTPException(status_code=500, detail="Ocorreu um erro interno inesperado no servidor.") from e
+
 
 @app.get("/me")
 def read_users_me(current_user: Usuario = Depends(get_current_user)):
