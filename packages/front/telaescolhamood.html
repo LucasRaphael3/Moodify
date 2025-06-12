@@ -86,6 +86,7 @@
         grid-template-columns: 1fr;
       }
     }
+
   </style>
 </head>
 <body>
@@ -119,7 +120,7 @@
 
         try {
           // 1. Chama a API no nosso backend (main.py)
-          const response = await fetch(`http://127.0.0.1:8000/playlist/${mood}`);
+          const response = await fetch(`/playlist/${mood}`);
           
           if (!response.ok) {
             const errorData = await response.json();
@@ -132,7 +133,7 @@
           localStorage.setItem('playlist', JSON.stringify(playlistData));
 
           // 3. Redireciona para a tela da playlist
-          window.location.href = 'telaplaylist.html';
+          window.location.href = '/telaplaylist';
 
         } catch (error) {
           console.error('Erro:', error);
