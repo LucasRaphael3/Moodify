@@ -1,101 +1,75 @@
-# Importa bibliotecas padrão e externas necessárias
-import os  # Para acessar variáveis de ambiente do sistema
-import requests  # Para fazer requisições HTTP
-from fastapi import FastAPI, Query  # Para criar a API e definir parâmetros de consulta
-from pydantic import BaseModel  # Para definir modelos de dados
-from dotenv import load_dotenv  # Para carregar variáveis de ambiente de um arquivo .env
+import os
+import requests
+from dotenv import load_dotenv
 
 # Carrega variáveis de ambiente do arquivo "api.env"
-load_dotenv("api.env")
+load_dotenv(dotenv_path="api.env")
 
-# Lê as variáveis de ambiente que contêm as credenciais do Spotify
-CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+# Lê as credenciais do Spotify do seu arquivo .env
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
-# Cria uma instância do FastAPI com um título personalizado
-app = FastAPI(title="API Spotify - Buscar Playlists")
-
-# Define o modelo da resposta para a rota de playlists
-class Playlist(BaseModel):
-    nome: str  # Nome da playlist
-    url: str   # URL da playlist no Spotify
-    dono: str  # Nome do usuário que criou a playlist
-
-# Função que obtém o token de acesso à API do Spotify
 def get_access_token():
-    auth_url = 'https://accounts.spotify.com/api/token'  # URL de autenticação do Spotify
-
-    # Autenticação via client credentials
-    auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
-    data = {
-        'grant_type': 'client_credentials',
-    }
-
-    # Envia a requisição POST para obter o token
-    response = requests.post(auth_url, auth=auth, data=data, timeout=10)
-    response.raise_for_status()  # Levanta exceção se a resposta for erro
-
-    # Retorna apenas o token de acesso
-    return response.json()['access_token']
-
-# Rota principal da API que busca playlists a partir de uma query
-@app.get("/playlists", response_model=list[Playlist])
-def buscar_playlists(query: str = Query(..., description="Nome da playlist")):
-    # Obtém o token de acesso válido
-    access_token = get_access_token()
+    """Obtém um token de acesso à API do Spotify."""
     
-    # Define os headers com o token Bearer
+     # --- INÍCIO DO DEBUG DE AUTENTICAÇÃO ---
+    print("\n--- DEBUG DE AUTENTICAÇÃO ---")
+    print(f"ID do Cliente lido do .env: '{SPOTIFY_CLIENT_ID}'")
+    print(f"Segredo do Cliente lido do .env: '{SPOTIFY_CLIENT_SECRET}'")
+    print("-----------------------------\n")
+
+    # Verificação para garantir que as variáveis foram carregadas
+    if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+        print("ERRO CRÍTICO: CLIENT_ID ou CLIENT_SECRET não foram carregados. Verifique se o nome e o local do arquivo api.env estão corretos.")
+        return None
+    # --- FIM DO DEBUG ---
+    
+    auth_url = 'https://accounts.spotify.com/api/token'
+
+    try:
+        auth_response = requests.post(auth_url, {
+            'grant_type': 'client_credentials',
+            'client_id': SPOTIFY_CLIENT_ID,
+            'client_secret': SPOTIFY_CLIENT_SECRET,
+        }, timeout=10)
+        
+        # Levanta uma exceção se a resposta indicar um erro HTTP
+        auth_response.raise_for_status()
+        auth_data = auth_response.json()
+        return auth_data['access_token']
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao obter token de acesso: {e}")
+        return None
+
+def search_spotify_playlist(query: str, limit: int = 1):
+    """
+    Busca playlists no Spotify com base em uma query e retorna os dados da API.
+    """
+    access_token = get_access_token()
+    if not access_token:
+        print("Não foi possível obter o token de acesso. A busca será cancelada.")
+        return None
+
+    # URL DE BUSCA CORRETA DA API DO SPOTIFY
+    search_url = 'https://api.spotify.com/v1/search'
+    
     headers = {
         'Authorization': f'Bearer {access_token}'
     }
-
-    # Define a URL e os parâmetros da requisição de busca
-    url = 'https://api.spotify.com/v1/search'
     params = {
-        'q': query,          # Termo de busca informado pelo usuário
-        'type': 'playlist',  # Tipo de item a buscar (playlist)
-        'limit': 5           # Limita o resultado a 5 playlists
+        'q': query,
+        'type': 'playlist',
+        'limit': limit
     }
 
-    # Envia a requisição GET para buscar as playlists
-    response = requests.get(url, headers=headers, params=params, timeout=10)
-    response.raise_for_status()  # Levanta exceção em caso de erro HTTP
-
-    # Converte a resposta JSON para um dicionário Python
-    data = response.json()
-
-    # Debug: mostra no terminal as playlists retornadas pela API
-    print("Debug playlists data:", data.get('playlists', {}).get('items'))
-
-    # Lista que armazenará os objetos Playlist válidos
-    playlists = []
-    items = data.get('playlists', {}).get('items', [])
+    try:
+        response = requests.get(search_url, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        return response.json()
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar playlist no Spotify: {e}")
+        return None
     
-    for item in items:
-        if not item:
-            continue  # Ignora entradas nulas
-
-        # Valida se todas as chaves necessárias existem no item
-        if ('name' in item and 
-            'external_urls' in item and 
-            'spotify' in item['external_urls'] and
-            'owner' in item and
-            'display_name' in item['owner']):
-
-            # Cria um objeto Playlist com os dados válidos e adiciona à lista
-            playlists.append(Playlist(
-                nome=item['name'],
-                url=item['external_urls']['spotify'],
-                dono=item['owner']['display_name']
-            ))
-        else:
-            # Mostra no terminal itens que não foram processados
-            print("Item incompleto ignorado:", item)
-
-    # Retorna a lista de playlists para o cliente
-    return playlists
-
-# Rota simples de teste, exibida ao acessar o root da API
-@app.get("/")
-def root():
-    return {"mensagem": "API para buscar playlists do Spotify"}
+    
