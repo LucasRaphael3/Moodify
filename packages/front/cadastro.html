@@ -4,11 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moodsic - Cadastro</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
+    .logo { font-size: 36px; font-weight: bold; color: #302e2e; margin-bottom: 10px; }
+    h1 { font-size: 24px; margin-bottom: 5px; }
+    .subtitle { color: #666; margin-bottom: 25px; }
+    .form input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+    .form button { width: 100%; padding: 12px; border: none; border-radius: 6px; background-color: #1e1e1e; color: white; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
+    .form button:hover { background-color: #333; }
+    #message { margin-top: 15px; height: 20px; font-weight: bold; }
+    #message.success { color: green; }
+    #message.error { color: red; }
+  </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo">Moodify</div>
+    <div class="logo">Moodsic</div>
     <h1>Seja bem-vindo!</h1>
     <p class="subtitle">Cadastre-se para continuar</p>
     <form class="form" id="register-form">
@@ -39,7 +51,7 @@
 
       // 4. Envia os dados para a API como JSON
       try {
-        const response = await fetch('http://127.0.0.1:8000/register', {
+        const response = await fetch('/register', {
           method: 'POST',
           headers: {
             // Informa à API que estamos enviando dados no formato JSON
@@ -60,7 +72,7 @@
         messageDiv.textContent = result.mensagem;
         messageDiv.className = 'success';
         // A linha abaixo redireciona o usuário imediatamente para a página de login.
-        window.location.href = 'Tela inicial.html';
+        window.location.href = '/login';
         
 
       } catch (error) {
