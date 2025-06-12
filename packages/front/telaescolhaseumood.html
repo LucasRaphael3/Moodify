@@ -92,7 +92,6 @@
   <header>
     <div class="logo">Moodify</div>
     <div class="icons">
-      <span>⚙️</span>
       <span>🧑‍💻</span>
     </div>
   </header>
@@ -100,11 +99,47 @@
   <div class="container">
     <h1>Como você está se sentindo hoje?</h1>
     <div class="mood-options">
-      <div class="mood-box">🙂<br>Feliz</div>
-      <div class="mood-box">🙁<br>Triste</div>
-      <div class="mood-box">↩️<br>Nostálgico</div>
-      <div class="mood-box">😌<br>Relax</div>
+      <div class="mood-box" data-mood="happy">🙂<br>Feliz</div>
+      <div class="mood-box" data-mood="sad">🙁<br>Triste</div>
+      <div class="mood-box" data-mood="party">🕺<br>Nostálgico</div>
+      <div class="mood-box" data-mood="relax">😌<br>Relax</div>
     </div>
+    <p id="message"></p>
   </div>
+
+  <script>
+    
+    document.querySelectorAll('.mood-box').forEach(box => {
+      box.addEventListener('click', async (event) => {
+        // Pega o humor do atributo data-mood do item clicado
+        const mood = event.currentTarget.dataset.mood;
+        const messageDiv = document.getElementById('message');
+        
+        messageDiv.textContent = 'Buscando a playlist perfeita...';
+
+        try {
+          // 1. Chama a API no nosso backend (main.py)
+          const response = await fetch(`http://127.0.0.1:8000/playlist/${mood}`);
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Não foi possível buscar a playlist.');
+          }
+
+          const playlistData = await response.json();
+
+          // 2. Salva os dados da playlist no localStorage para usar na próxima página
+          localStorage.setItem('playlist', JSON.stringify(playlistData));
+
+          // 3. Redireciona para a tela da playlist
+          window.location.href = 'telaplaylist.html';
+
+        } catch (error) {
+          console.error('Erro:', error);
+          messageDiv.textContent = `Erro: ${error.message}`;
+        }
+      });
+    });
+  </script>
 </body>
 </html>
