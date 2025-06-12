@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Moodify</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #302e2e, #302e2e, #000);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .icons {
+      display: flex;
+      gap: 20px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px 60px;
+      margin-top: 50px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .container h1 {
+      font-size: 22px;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .mood-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .mood-box {
+      background-color: #888;
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .mood-box:hover {
+      background-color: #666;
+    }
+
+    @media (max-width: 600px) {
+      .mood-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Moodify</div>
+    <div class="icons">
+      <span>⚙️</span>
+      <span>🧑‍💻</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>Como você está se sentindo hoje?</h1>
+    <div class="mood-options">
+      <div class="mood-box">🙂<br>Feliz</div>
+      <div class="mood-box">🙁<br>Triste</div>
+      <div class="mood-box">↩️<br>Nostálgico</div>
+      <div class="mood-box">😌<br>Relax</div>
+    </div>
+  </div>
+</body>
+</html>
