@@ -101,23 +101,23 @@ app.add_middleware(
 
 # --- CONFIGURAÇÃO PARA SERVIR ARQUIVOS HTML ---
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "front"))
+front = Jinja2Templates(directory=str(BASE_DIR / "front"))
 
 @app.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return front.TemplateResponse("login.html", {"request": request})
 
 @app.get("/cadastro", response_class=HTMLResponse)
 async def get_cadastro_page(request: Request):
-    return templates.TemplateResponse("cadastro.html", {"request": request})
+    return front.TemplateResponse("cadastro.html", {"request": request})
 
 @app.get("/telaescolhamood", response_class=HTMLResponse)
 async def get_escolhamood_page(request: Request):
-    return templates.TemplateResponse("telaescolhamood.html", {"request": request})
+    return front.TemplateResponse("telaescolhamood.html", {"request": request})
 
 @app.get("/telaplaylist", response_class=HTMLResponse)
 async def get_telaplaylist_page(request: Request):
-    return templates.TemplateResponse("telaplaylist.html", {"request": request})
+    return front.TemplateResponse("telaplaylist.html", {"request": request})
 
 
 # ----- API ENDPOINTS -----
@@ -195,4 +195,4 @@ def read_users_me(current_user: Usuario = Depends(get_current_user)):
 @app.get("/", response_class=HTMLResponse)
 async def serve_login_page(request: Request):
     """Serve a página de login como a página inicial."""
-    return templates.TemplateResponse("login.html", {"request": request})
+    return front.TemplateResponse("login.html", {"request": request})
