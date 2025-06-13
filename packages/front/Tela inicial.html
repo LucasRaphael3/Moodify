@@ -165,59 +165,47 @@
            <input type="password" name="password" placeholder="Senha" required />
         </div>
         <button type="submit" class="btn">Login</button>
-        <button type="submit" class="btn">Cadastre-se</button>
-        <div id="error-message"></div> <a href="#" class="forgot">Esqueci minha senha</a>
+        <div id="error-message"></div>
+        <a href="#" class="forgot"></a>
       </form>
+      <div class="register-link">
+        <p>Não tem uma conta? <a href="Tela cadastro.html">Cadastre-se</a></p>
+      </div>
     </div>
   </div>
 
   <script>
-    // Seleciona o formulário e a div de mensagem de erro
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
 
-    // Adiciona um 'escutador' para o evento de 'submit' do formulário
     loginForm.addEventListener('submit', async (event) => {
-      // 1. Impede o comportamento padrão do formulário (que seria recarregar a página)
       event.preventDefault();
-
-      // 2. Limpa mensagens de erro antigas
       errorMessage.textContent = '';
-
-      // 3. Coleta os dados do formulário
       const formData = new FormData(loginForm);
 
-      // 4. Envia os dados para a API usando fetch
       try {
-        const response = await fetch('http://127.0.0.1:8000/token', { // A URL da sua API
+        const response = await fetch('http://127.0.0.1:8000/token', {
           method: 'POST',
           body: formData
         });
 
-        // 5. Trata a resposta da API
         if (!response.ok) {
-          // Se a resposta não for OK (ex: erro 401), pega o detalhe do erro
           const errorData = await response.json();
           throw new Error(errorData.detail || 'Falha no login');
         }
 
         const data = await response.json();
-
-        // SUCESSO! O token foi recebido.
         console.log('Login bem-sucedido!', data);
-        alert('Login realizado com sucesso!'); 
-
-        // Guarda o token no navegador (LocalStorage é uma opção comum)
         localStorage.setItem('accessToken', data.access_token);
         
+        // Redireciona para a tela de escolha de mood
+        window.location.href = 'telaescolhamood.html';
 
       } catch (error) {
-        // Exibe a mensagem de erro na tela
         console.error('Erro ao fazer login:', error);
         errorMessage.textContent = error.message;
       }
     });
   </script>
-  </div>
 </body>
 </html>

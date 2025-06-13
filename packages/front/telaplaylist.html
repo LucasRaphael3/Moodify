@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Moodify</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #302e2e, #302e2e, #000);
+      height: 100vh;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .icons {
+      display: flex;
+      gap: 20px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px;
+      margin-top: 50px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 900px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .container h1 {
+      font-size: 22px;
+      margin-bottom: 30px;
+    }
+
+    .playlist-options {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .playlist-box {
+      background-color: #f1f1f1;
+      padding: 20px;
+      border-radius: 15px;
+      width: 200px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .playlist-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .playlist-genres {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .btn {
+      background-color: #1e1e1e;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #444;
+    }
+
+    @media (max-width: 600px) {
+      .playlist-options {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Moodify</div>
+    <div class="icons">
+      <span>🧑‍💻</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1 id="page-title">Suas playlists recomendadas estão aqui!</h1>
+    <div class="playlist-options" id="playlist-container">
+      <p>Carregando playlists...</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const playlistDataString = localStorage.getItem('playlist');
+      const playlistContainer = document.getElementById('playlist-container');
+
+      if (playlistDataString) {
+        try {
+          // 1. Pega o objeto principal que contém a lista
+          const data = JSON.parse(playlistDataString);
+          // 2. Acessa a lista de playlists de dentro do objeto
+          const playlists = data.playlists;
+
+          // 3. Verifica se 'playlists' é uma lista e se tem itens
+          if (Array.isArray(playlists) && playlists.length > 0) {
+            playlistContainer.innerHTML = ''; // Limpa a mensagem "Carregando..."
+
+            // 4. Usa um loop (forEach) para criar um card para cada playlist
+            playlists.forEach(playlist => {
+              const playlistBox = document.createElement('div');
+              playlistBox.className = 'playlist-box';
+
+              const image = document.createElement('img');
+              image.src = playlist.image_url || 'https://via.placeholder.com/200?text=No+Image';
+              image.className = 'playlist-image';
+              image.alt = `Capa da playlist ${playlist.name}`;
+
+              const title = document.createElement('div');
+              title.className = 'playlist-title';
+              title.textContent = playlist.name || 'Nome da Playlist';
+
+              const button = document.createElement('a');
+              button.className = 'btn';
+              button.href = playlist.external_url || '#';
+              button.target = '_blank';
+              button.rel = 'noopener noreferrer';
+              button.textContent = '▶ Ouvir no Spotify';
+
+              // Monta o card da playlist
+              playlistBox.appendChild(image);
+              playlistBox.appendChild(title);
+              playlistBox.appendChild(button);
+              
+              // Adiciona o card pronto ao container na página
+              playlistContainer.appendChild(playlistBox);
+            });
+          } else {
+            // Caso a lista de playlists esteja vazia
+            throw new Error("Nenhuma playlist foi retornada.");
+          }
+        } catch(e) {
+            console.error("Erro ao processar dados da playlist:", e);
+            playlistContainer.innerHTML = `<p>Houve um erro ao ler os dados da playlist. ${e.message}</p>`;
+        }
+      } else {
+        playlistContainer.innerHTML = '<p>Não foi possível carregar as playlists. Tente escolher um humor novamente.</p>';
+      }
+    });
+  </script>
+</body>
+</html>
